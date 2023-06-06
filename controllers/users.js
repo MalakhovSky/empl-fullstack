@@ -13,12 +13,16 @@ const login = async (req, res) => {
             email,
         }
     });
+
     const isPasswordCorrect = user && (await brypt.compare(password, user.password));
-    if(user && isPasswordCorrect){
+    const secret = process.env.JWT_SECRET;
+
+    if(user && isPasswordCorrect && secret){
         res.status(200).json({
             id: user.id,
             email: user.email,
             name : user.name,
+            token: jwt.sign({id:user.id}, secret,{expiresIn:'30d'})
         })
     }else {
         return res.status(400).json({message:'Неверный логин или пароль'})
@@ -26,7 +30,7 @@ const login = async (req, res) => {
 }
 
 // @route POST /api/ user/ register
-const register = async (req, res) => {
+const register = async (req, res, next) => {
     const {email,password,name} = req.body;
     if(!email || !password || !name) {
         return res.status(400).json({message:"Пожайлуста заполните обязательные поля"})
@@ -62,8 +66,10 @@ const register = async (req, res) => {
         return res.status(400).json({message:'Не удалось создать пользователя'})
     }
 }
+
+
 const current = async (req, res) => {
-    res.send('current');
+    return res.status(200).json(req.user)
 }
 
 module.exports = {
@@ -71,3 +77,4 @@ module.exports = {
     register,
     current
 }
+//1:02
